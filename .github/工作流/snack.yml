@@ -1,0 +1,229 @@
+#include<iostream>
+#include<graphics.h>
+#include<conio.h>
+#include<stdlib.h>
+#include<ctime>
+#include<string>
+#include<windows.h>
+using namespace std;
+int x_origin = 0, y_origin = 0;
+int width = 15;
+int food_x, food_y, n;
+char input = ',';
+char dir1, dir2;
+int score = 0;
+void DrawUnitBlock(int left, int top, COLORREF color1, int color2);
+void DrawSnack(int snack[][2], int n);
+void DrawBackgrand();
+void MoveSnack(int snack[][2], int n, char input);
+void PrintSnack(int snack[][2], int n);
+void CheckOver(int snack[][2], int n);
+void creatfood(int snack[][2], int n);
+void DrawFood();
+void Eatfood(int snack[][2], int n);
+void Newn(int snack[][2]);
+void Drawcircle(int x, int y, int color1, int r);
+int main()
+{
+	MessageBox(NULL, TEXT("开始游戏前请单击控制台\t\nw 控制蛇向上\t\ns控制蛇向下\t\na控制蛇向左\t\nd控制蛇向右\t\nq退出游戏"), TEXT("role"), MB_OK);
+	unsigned seed;
+	seed = time(0);
+	srand(seed);
+	int windowWidth = 800, windowHeight = 800;
+	initgraph(windowWidth, windowHeight, EX_SHOWCONSOLE);
+	DrawBackgrand();
+	int snack[1600][2] = { {1,2} };
+	Newn(snack);
+	DrawSnack(snack, n);
+	creatfood(snack, n);
+	DrawFood();
+	
+	while (1)
+	{
+		if (_kbhit())
+			input = _getch();
+		dir1 = input;
+		CheckOver(snack, n);
+		if (input == 'q' || input == 'Q')
+			break;
+		if ( input == 'a' || input == 's' || input == 'd' || input == 'w')
+		{
+			if (dir1 == 'w' || dir1 == 'W')
+				dir2 = 's';
+			if (dir1 == 'a' || dir1 == 'A')
+				dir2 = 'd';
+			if (dir1 == 's' || dir1 == 'S')
+				dir2 = 'w';
+			if (dir1 == 'd' || dir1 == 'D')
+				dir2 = 'a';
+			while (1)
+			{
+				if (input == 'q' || input == 'Q')
+					break;
+				Newn(snack);
+				MoveSnack(snack, n, input);
+				Eatfood(snack, n);
+				DrawBackgrand();
+				DrawSnack(snack, n);
+				DrawFood();
+				Sleep(150);
+				if (_kbhit())
+				{
+					input = _getch();
+					if (input != dir1 && input != dir2 && (input == 'a' || input == 's' || input == 'd' || input == 'w' || input == 'q'))
+						break;
+					else input = dir1;
+				}
+			
+			}
+		}
+	}
+	MessageBox(NULL,TEXT("GAME OVER\n得分在控制台中查询。"), TEXT("result"), MB_OK);
+	cout << "您的得分为 " << score;
+	_getch();
+	closegraph();
+	return 0;
+}
+void DrawSnack(int snack[][2], int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		int r = rand() % 255 + 1;
+		int g = rand() % 255 + 1;
+		int b = rand() % 255 + 1;
+		if (i == 0)
+			Drawcircle(snack[i][0], snack[i][1], RGB(r, g, b), (width + 2) / 2);
+		else
+			DrawUnitBlock(snack[i][0], snack[i][1], RGB(r, g, b), RGB(23, 233, 244));
+	}
+	PrintSnack(snack, n);
+}
+void DrawUnitBlock(int left, int top, COLORREF color1, int color2)
+{
+	left = left * width + x_origin;
+	top = top * width + y_origin;
+	setfillcolor(color1);
+	setlinecolor(color2);
+	fillrectangle(left, top, left + width, top + width);
+
+}
+void DrawBackgrand()
+{
+	setbkcolor(BLACK);
+	cleardevice();
+	setlinecolor(WHITE);
+	line(0, 0, 615, 0);
+	line(0, 0, 0, 615);
+	line(615, 0, 615, 615);
+	line(0, 615, 615, 615);
+}
+void MoveSnack(int snack[][2], int n, char input)
+{
+	for (int i = n - 1; i > 0; i--)
+	{
+		snack[i][1] = snack[i - 1][1];
+		snack[i][0] = snack[i - 1][0];
+	}
+	if (input == 'd' || input == 'D')
+		snack[0][0] += 1;
+	if (input == 'a' || input == 'A')
+		snack[0][0] -= 1;
+	if (input == 'w' || input == 'W')
+		snack[0][1] -= 1;
+	if (input == 's' || input == 'S')
+		snack[0][1] += 1;
+
+}
+void PrintSnack(int snack[][2], int n)
+{
+
+	for (int i = 0; i < n; i++)
+		cout << '(' << snack[i][0] << ',' << snack[i][1] << ')' << ' ';
+	cout << endl;
+}
+void CheckOver(int snack[][2], int n)
+{
+	int newsnack_x = snack[0][0], newsnack_y = snack[0][1];
+	if (dir1 == 'w' || dir1 == 'W')
+		newsnack_y = snack[0][1] - 1;
+	if (dir1 == 's' || dir1 == 'S')
+		newsnack_y = snack[0][1] + 1;
+	if (dir1 == 'a' || dir1 == 'A')
+		newsnack_x = snack[0][0] - 1;
+	if (dir1 == 'd' || dir1 == 'D')
+		newsnack_x = snack[0][0] + 1;
+	if (newsnack_x <0 || newsnack_x > 40 || newsnack_y < 0 || newsnack_y > 40)
+	{
+		input = 'q';
+		return;
+	}
+	for (int i = 1; i < n; i++)
+		if (newsnack_x == snack[i][0] && newsnack_y == snack[i][1])
+			input = 'q';
+}
+void creatfood(int snack[][2], int n)
+{
+
+	while (1)
+	{
+		int i;
+		food_x = rand() % 40;
+		food_y = rand() % 40;
+		for (i = 0; i < n; i++)
+			if (food_x == snack[i][0] && food_y == snack[i][0])
+				break;
+		if (i == n)
+			break;
+	}
+
+}
+void DrawFood()
+{
+	Drawcircle(food_x, food_y, BROWN, width / 2);
+}
+void Eatfood(int snack[][2], int n)
+{
+	if (snack[0][0] == food_x && snack[0][1] == food_y)
+	{
+		if (dir1 == 'w' || dir1 == 'W')
+		{
+			snack[n][0] = snack[n - 1][0];
+			snack[n][1] = snack[n - 1][1] + 1;
+		}
+		if (dir1 == 's' || dir1 == 'S')
+		{
+			snack[n][0] = snack[n - 1][0];
+			snack[n][1] = snack[n - 1][1] - 1;
+		}
+		if (dir1 == 'a' || dir1 == 'A')
+		{
+			snack[n][1] = snack[n - 1][1];
+			snack[n][0] = snack[n - 1][0] + 1;
+		}
+		if (dir1 == 'd' || dir1 == 'D')
+		{
+			snack[n][1] = snack[n - 1][1];
+			snack[n][0] = snack[n - 1][0] - 1;
+		}
+		creatfood(snack, n);
+		DrawFood();
+		Newn(snack);
+		score++;
+	}
+}
+void Newn(int snack[][2])
+{
+	for (int i = 0; i < 1600; i++)
+	{
+		if (snack[i][0] == 0 && snack[i][1] == 0 && snack[i + 1][1] == 0 && snack[i + 1][0] == 0)
+			break;
+		n = i + 1;
+	}
+}
+void Drawcircle(int x, int y, int color1, int r)
+{
+	int cx = x * width + x_origin + width / 2;
+	int cy = y * width + y_origin + width / 2;
+	setfillcolor(color1);
+	fillcircle(cx, cy, r);
+}
